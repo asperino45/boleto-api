@@ -73,15 +73,11 @@ export class BoletoService {
   public validateConvenioBarCode(barCode: string): ConvenioBarCode {
     const convenio = this.convenioService.convenioBarCode(barCode);
 
-    // check length
-    if (convenio.barCode.length !== 44) throw new Error();
-    if (convenio.productId !== '8') throw new Error();
     // check DV
     if (!this.convenioService.validateConvenioBarCode(barCode))
-      throw new Error();
+      throw new BadRequestException('Digito verificador está incorreto.');
     // check valueId
-    if (!this.convenioService.isValidValueId(convenio.valueId))
-      throw new Error();
+    this.isValidValueId(convenio.valueId);
 
     return convenio;
   }
@@ -89,32 +85,42 @@ export class BoletoService {
   public validateConvenioDigits(barCode: string): ConvenioDigits {
     const convenio = this.convenioService.convenioDigits(barCode);
 
-    // check length
-    if (convenio.barCode.length !== 48) throw new Error();
-    if (convenio.productId !== '8') throw new Error();
     // check DV
     if (!this.convenioService.validateConvenioDigits(barCode))
-      throw new Error();
+      throw new BadRequestException('Digito verificador está incorreto.');
     // check valueId
-    if (!['6', '7', '8', '9'].some((valueId) => valueId !== convenio.valueId))
-      throw new Error();
+    this.isValidValueId(convenio.valueId);
 
     return convenio;
+  }
+
+  private isValidValueId(valueId: string[1]) {
+    if (!this.convenioService.isValidValueId(valueId))
+      throw new BadRequestException(
+        'O digito identificador do valor deve ser 6, 7, 8, 9.',
+      );
   }
 
   public validateTituloBarCode(barCode: string): TituloBarCode {
     const titulo = this.tituloService.tituloBarCode(barCode);
 
     // check DV
-    if (!this.tituloService.validateTituloBarCode(barCode)) throw new Error();
+    if (!this.tituloService.validateTituloBarCode(barCode))
+      throw new BadRequestException('Digito verificador está incorreto.');
     // check dueDateFactor
-    if (!this.boletoUtilsService.validateDueDateFactor(titulo.dueDateFactor))
-      throw new Error();
+    this.isValidDueDateFactor(titulo.dueDateFactor);
     // check currencyCode === 9 (brl)
-    if (titulo.currencyCode !== '9') throw new Error();
+    this.isValidCurrencyCode(titulo.currencyCode);
     // check meu número?
 
     return titulo;
+  }
+
+  private isValidDueDateFactor(dueDateFactor: string[4]) {
+    if (!this.boletoUtilsService.validateDueDateFactor(dueDateFactor))
+      throw new BadRequestException(
+        'Fator de vencimento não está no intervalo aceitável (1000,9999).',
+      );
   }
 
   public validateTituloDigits(barCode: string): TituloDigits {
@@ -122,18 +128,18 @@ export class BoletoService {
 
     // check DV
     if (!this.tituloService.validateTituloDigits(barCode))
-      throw new BadRequestException();
+      throw new BadRequestException('Digito verificador está incorreto.');
     // check dueDateFactor
-    if (
-      !this.boletoUtilsService.validateDueDateFactor(
-        titulo.field5.dueDateFactor,
-      )
-    )
-      throw new Error();
+    this.isValidDueDateFactor(titulo.field5.dueDateFactor);
     // check currencyCode === 9 (brl)
-    if (titulo.field1.currencyCode !== '9') throw new Error();
+    this.isValidCurrencyCode(titulo.field1.currencyCode);
     // check meu número?
 
     return titulo;
+  }
+
+  private isValidCurrencyCode(currencyCode: string[1]) {
+    if (currencyCode !== '9')
+      throw new BadRequestException('Valor da moeda deve ser 9 (real).');
   }
 }
