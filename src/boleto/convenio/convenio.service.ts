@@ -1,6 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { BoletoUtilsService } from '../boleto-utils.service';
-import { ConvenioBarCode, ConvenioDigits } from '../types';
+import { IConvenioBarCode, IConvenioDigits } from '../types';
 
 @Injectable()
 export class ConvenioService {
@@ -15,7 +15,7 @@ export class ConvenioService {
     restOffset += isValidDueDate && 8;
     restOffset += _isConvenioCNPJ && 4;
 
-    const convenio: ConvenioBarCode = {
+    const convenio: IConvenioBarCode = {
       barCode: barCodeString,
       productId: barCodeString.slice(0, 1),
       segmentId: barCodeString.slice(1, 2),
@@ -34,7 +34,25 @@ export class ConvenioService {
         ? barCodeString.slice(23, 31)
         : barCodeString.slice(19, 27);
 
+    // check DV
+    if (!this.validateConvenioBarCode(barCodeString))
+      // check valueId
+      this.isValidValueId(convenio.valueId);
+
     return convenio;
+  }
+
+  public getConvenioBarCodeFromConvenioDigits(convenio: IConvenioDigits) {
+    return (
+      convenio.productId +
+      convenio.segmentId +
+      convenio.valueId +
+      convenio.verificationNumber +
+      convenio.value +
+      convenio.entityId +
+      (convenio.dueDate ?? '') +
+      convenio.rest
+    );
   }
 
   public convenioDigits(barCodeString: string) {
@@ -57,7 +75,7 @@ export class ConvenioService {
         barCodeString.slice(24, 35) +
         barCodeString.slice(36, 47);
 
-    const convenio: ConvenioDigits = {
+    const convenio: IConvenioDigits = {
       barCode: barCodeString,
       productId: barCodeString.slice(0, 1),
       segmentId: barCodeString.slice(1, 2),
@@ -76,6 +94,11 @@ export class ConvenioService {
     };
 
     if (isValidDueDate) convenio.dueDate = dueDate;
+
+    // check DV
+    !this.validateConvenioDigits(barCodeString);
+    // check valueId
+    this.isValidValueId(convenio.valueId);
 
     return convenio;
   }
@@ -96,7 +119,7 @@ export class ConvenioService {
     return barCode[1] === '6';
   }
 
-  public validateConvenioDV(barCodeWithoutDV, DV, valueId) {
+  public validateConvenioDV(barCodeWithoutDV: string, DV, valueId) {
     if (valueId === '6')
       return DV === this.boletoUtilsService.DV10(barCodeWithoutDV).toString();
     if (valueId === '7')
@@ -111,11 +134,18 @@ export class ConvenioService {
       );
   }
 
+  public getBarCodeWithoutDV(barCode: string) {
+    return barCode.slice(0, 3) + barCode.slice(4);
+  }
+
   public validateConvenioBarCode(barCode: string[44]) {
-    const barCodeWithoutDV = parseInt(barCode.slice(0, 3) + barCode.slice(4));
+    const barCodeWithoutDV = this.getBarCodeWithoutDV(barCode);
     const DV = barCode[3];
 
-    return this.validateConvenioDV(barCodeWithoutDV, DV, barCode[2]);
+    const isValid = this.validateConvenioDV(barCodeWithoutDV, DV, barCode[2]);
+    if (isValid) return isValid;
+
+    throw new BadRequestException('Digito verificador está incorreto.');
   }
 
   public validateConvenioDigits(barCode: string) {
@@ -130,14 +160,32 @@ export class ConvenioService {
     const fields = [field1, field2, field3, field4];
     const fieldsDV = [field1DV, field2DV, field3DV, field4DV];
 
-    return fields.every((field, idx) => {
+    this.validateConvenioBarCode(fields.join(''));
+
+    const isValidFields = fields.every((field, idx) => {
       return this.validateConvenioDV(field, fieldsDV[idx], barCode[2]);
     });
+    if (isValidFields) return true;
+
+    throw new BadRequestException('Digito verificador está incorreto.');
   }
 
   public readonly VALID_VALUE_ID = ['6', '7', '8', '9'];
 
   public isValidValueId(digit: string[1]) {
     return this.VALID_VALUE_ID.some((valueId) => valueId === digit);
+  }
+
+  public getBarCodeStringFromDigits(barCode: string) {
+    return (
+      barCode.slice(0, 11) +
+      barCode.slice(11, 12) +
+      barCode.slice(12, 23) +
+      barCode.slice(23, 24) +
+      barCode.slice(24, 35) +
+      barCode.slice(35, 36) +
+      barCode.slice(36, 47) +
+      barCode.slice(47, 48)
+    );
   }
 }

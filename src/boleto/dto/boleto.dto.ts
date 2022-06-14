@@ -9,7 +9,7 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
-import { Boleto } from '../types';
+import { IBoleto } from '../types';
 import { getDecimalValueString } from '../utils';
 
 export class BoletoResponseDto {
@@ -67,7 +67,7 @@ export function ExactLength(
 }
 
 export class BoletoRequestDto {
-  boleto: Boleto;
+  boleto: IBoleto;
 
   @ExactLength([44, 47, 48])
   @IsNumberString()

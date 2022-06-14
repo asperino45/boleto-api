@@ -16,6 +16,6 @@ export class BoletoController {
   public async getBoleto(
     @Param() barCode: BoletoRequestDto,
   ): Promise<BoletoResponseDto> {
-    return this.boletoService.validateBoleto(barCode.barCode);
+    return this.boletoService.getBoletoResponseDto(barCode.barCode);
   }
 }

@@ -92,22 +92,26 @@ npm-install: prepare build
 	fi
 
 # Testes
-test-unit-dev: build
-	@echo "Rodando teste da imagem $(API_IMAGE_TAG) com nome $(API_CONTAINER)-test"
-	@docker run -it --rm \
-		--init \
-		--name $(API_CONTAINER)-test \
-		--network $(NETWORK) \
-		--env-file './.env' \
-		-p $(API_PORT_MAP) \
-		$(API_IMAGE_TAG) $(NODE_PKG) run test:watch
+test-unit-debug:
+	$(MAKE) test-unit-dev TEST_CMD="yarn run test:debug"
 
-test-unit: build
+test-unit-dev: TEST_CMD?=$(NODE_PKG) run test:watch
+test-unit-dev: prepare build
+	@echo "Rodando teste da imagem $(API_IMAGE_NAME) com nome $(API_CONTAINER)-test"
+	@docker run -it --rm \
+		--name $(API_CONTAINER)-test \
+		--env-file './.env' \
+		--network $(NETWORK) \
+		-p $(API_PORT_MAP) \
+		-p $(API_DEBUG_PORT_MAP) \
+		-v $(PWD):/app \
+		$(API_IMAGE_NAME) $(TEST_CMD)
+
+test-unit: build-prod
 	@echo "Rodando teste da imagem $(API_IMAGE_TAG) com nome $(API_CONTAINER)-test"
 	@docker run -it --rm \
 		--init \
 		--name $(API_CONTAINER)-test \
-		--network $(NETWORK) \
 		--env-file './.env' \
 		-p $(API_PORT_MAP) \
 		$(API_IMAGE_TAG) $(NODE_PKG) run test

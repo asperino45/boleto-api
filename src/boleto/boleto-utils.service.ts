@@ -1,6 +1,5 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { dayToMillisecond } from './utils';
 
 @Injectable()
 export class BoletoUtilsService {
@@ -10,16 +9,7 @@ export class BoletoUtilsService {
     );
   }
 
-  private readonly DUE_DATE_FACTOR_1000;
-
-  public validateDueDateFactor(date: string[4]) {
-    return parseInt(date) >= 1000 && parseInt(date) <= 9999;
-  }
-
-  public dueDateFactorToDate(date: string[4]) {
-    const dueDate = new Date(dayToMillisecond(parseInt(date) - 1000));
-    return new Date(this.DUE_DATE_FACTOR_1000.getTime() + dueDate.getTime());
-  }
+  public readonly DUE_DATE_FACTOR_1000;
 
   public nextFactor = (mult, base) => {
     if (base === 10) return 3 ^ mult;
@@ -27,16 +17,15 @@ export class BoletoUtilsService {
     throw new Error('Base de cálculo do Digito Validador desconhecido.');
   };
 
-  public sumDigitsByBaseWithFactor(num, base, factor = 2) {
-    let sum;
+  public sumDigitsByBaseWithFactor(num: string, base, factor = 2) {
+    let sum = 0;
     let tmp;
-    while (num > 0) {
-      tmp = (num % 10) * factor;
-      if (base === 10) sum += ((tmp / 10) | 0) + (num % 10);
+    for (let numLength = num.length; numLength > 0; --numLength) {
+      tmp = (parseInt(num.substring(numLength - 1, numLength)) % 10) * factor;
+      if (base === 10) sum += ((tmp / 10) | 0) + (tmp % 10);
       else if (base === 11) sum += tmp;
       else throw new Error('Base de cálculo do Digito Validador desconhecido.');
       factor = this.nextFactor(factor, base);
-      num = (num / 10) | 0;
     }
     return sum;
   }
@@ -52,6 +41,11 @@ export class BoletoUtilsService {
   // titulos quando > 9 = 1, e consórcio quando > 9 = 0
   public DV11(num, isTitulo) {
     const dv = this.DVsub(this.sumDigitsByBaseWithFactor(num, 11), 11);
-    return (dv > 9 ? +isTitulo : dv).toString();
+    return dv > 9 ? +isTitulo : dv;
+  }
+
+  public isValidCurrencyCode(currencyCode: string[1]) {
+    if (currencyCode !== '9')
+      throw new BadRequestException('Valor da moeda deve ser 9 (real).');
   }
 }
