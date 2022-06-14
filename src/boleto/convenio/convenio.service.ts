@@ -120,18 +120,23 @@ export class ConvenioService {
   }
 
   public validateConvenioDV(barCodeWithoutDV: string, DV, valueId) {
+    let res;
+
     if (valueId === '6')
-      return DV === this.boletoUtilsService.DV10(barCodeWithoutDV).toString();
+      res = this.boletoUtilsService.DV10(barCodeWithoutDV).toString();
     if (valueId === '7')
-      return DV === this.boletoUtilsService.DV10(barCodeWithoutDV).toString();
+      res = this.boletoUtilsService.DV10(barCodeWithoutDV).toString();
     if (valueId === '8')
-      return (
-        DV === this.boletoUtilsService.DV11(barCodeWithoutDV, false).toString()
-      );
+      res = this.boletoUtilsService.DV11(barCodeWithoutDV, false).toString();
     if (valueId === '9')
-      return (
-        DV === this.boletoUtilsService.DV11(barCodeWithoutDV, false).toString()
+      res = this.boletoUtilsService.DV11(barCodeWithoutDV, false).toString();
+
+    if (res == null)
+      throw new BadRequestException(
+        'O digito identificador do valor deve ser 6, 7, 8, 9.',
       );
+
+    return DV === res;
   }
 
   public getBarCodeWithoutDV(barCode: string) {

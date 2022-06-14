@@ -83,13 +83,6 @@ export class BoletoService {
     return convenio;
   }
 
-  private isValidValueId(valueId: string[1]) {
-    if (!this.convenioService.isValidValueId(valueId))
-      throw new BadRequestException(
-        'O digito identificador do valor deve ser 6, 7, 8, 9.',
-      );
-  }
-
   public getAndValidateTituloBarCode(barCode: string): ITituloBarCode {
     const titulo = this.tituloService.tituloBarCode(barCode);
     return titulo;
