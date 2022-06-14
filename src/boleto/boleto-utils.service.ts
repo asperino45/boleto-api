@@ -31,7 +31,7 @@ export class BoletoUtilsService {
   }
 
   public DVsub(sum, base) {
-    return base - (sum % base);
+    return (base - (sum % base)) % base;
   }
 
   public DV10(num) {

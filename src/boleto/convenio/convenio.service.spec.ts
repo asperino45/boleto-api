@@ -3,7 +3,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { BoletoUtilsService } from '../boleto-utils.service';
 import { ConvenioService } from './convenio.service';
 
-describe.skip('ConvenioService', () => {
+describe('ConvenioService', () => {
   let service: ConvenioService;
 
   beforeEach(async () => {
@@ -18,12 +18,42 @@ describe.skip('ConvenioService', () => {
     expect(service).toBeDefined();
   });
 
-  it.skip('should parse bar code', () => {
-    throw new Error();
+  it('should parse bar code', () => {
+    const barCode = '83660000001815200531072097004211110006394306';
+    expect(service.convenioBarCode(barCode)).toMatchInlineSnapshot(`
+      Object {
+        "barCode": "83660000001815200531072097004211110006394306",
+        "entityId": "0053",
+        "kind": "ConvenioBarCode",
+        "productId": "8",
+        "rest": "1072097004211110006394306",
+        "segmentId": "3",
+        "value": "00000018152",
+        "valueId": "6",
+        "verificationNumber": "6",
+      }
+    `);
   });
 
-  it.skip('should parse digits', () => {
-    throw new Error();
+  it('should parse digits', () => {
+    const barCode = '836600000019815200531078209700421115100063943060';
+    expect(service.convenioDigits(barCode)).toMatchInlineSnapshot(`
+      Object {
+        "barCode": "836600000019815200531078209700421115100063943060",
+        "entityId": "0053",
+        "kind": "ConvenioDigits",
+        "productId": "8",
+        "rest": "1072097004211110006394306",
+        "segmentId": "3",
+        "value": "00000018152",
+        "valueId": "6",
+        "verificationNumber": "6",
+        "verificationNumberField1": "9",
+        "verificationNumberField2": "8",
+        "verificationNumberField3": "5",
+        "verificationNumberField4": "0",
+      }
+    `);
   });
 
   it.skip('should throw when general Bar Code DV is invalid', () => {

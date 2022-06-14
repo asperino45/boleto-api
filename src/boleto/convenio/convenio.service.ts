@@ -96,7 +96,7 @@ export class ConvenioService {
     if (isValidDueDate) convenio.dueDate = dueDate;
 
     // check DV
-    !this.validateConvenioDigits(barCodeString);
+    this.validateConvenioDigits(barCodeString);
     // check valueId
     this.isValidValueId(convenio.valueId);
 
@@ -163,7 +163,8 @@ export class ConvenioService {
     this.validateConvenioBarCode(fields.join(''));
 
     const isValidFields = fields.every((field, idx) => {
-      return this.validateConvenioDV(field, fieldsDV[idx], barCode[2]);
+      const res = this.validateConvenioDV(field, fieldsDV[idx], barCode[2]);
+      return res;
     });
     if (isValidFields) return true;
 

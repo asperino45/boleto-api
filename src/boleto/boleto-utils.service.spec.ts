@@ -35,7 +35,7 @@ describe('BoletoUtilsService', () => {
   );
 
   it.each([
-    ['01230067896', 3],
+    ['01230067896', 0],
     ['8220000215048200974123220154098290108605940', 0],
   ])(
     'should calculate the correct DV for mod 11 algorithm for convenio',
