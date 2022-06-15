@@ -27,7 +27,7 @@ RUN yarn install \
 
 CMD [ "yarn", "run", "start:dev" ]
 
-FROM node:dubnium-alpine as prod
+FROM node:gallium-alpine as prod
 RUN set -x
 
 # Install base packages

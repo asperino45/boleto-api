@@ -8,8 +8,9 @@ export API_IMAGE_NAME=ewally/boleto-api
 export API_CONTAINER=boleto-api
 
 # Expor porta padrão de debug do node
-export API_DEBUG_PORT_MAP?=$(API_DEBUG_PORT):9229
-export API_PORT_MAP?=$(API_PORT):3000
+export API_DEBUG_PORT_MAP?=9229:$(API_DEBUG_PORT)
+export HOST_PORT?=3000
+export API_PORT_MAP?=$(HOST_PORT):$(API_PORT)
 
 export NETWORK=ewally
 
