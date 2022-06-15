@@ -52,7 +52,7 @@ server-dev: prepare build npm-install
 		$(API_IMAGE_NAME)
 
 # Executa servidor em modo de produção
-server-prod: build-prod
+server-prod: prepare build-prod
 	@echo "Subindo a imagem $(API_IMAGE_TAG) com o nome $(API_CONTAINER)"
 	docker run -d \
 		--init \
